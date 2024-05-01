@@ -79,6 +79,10 @@ public class GameFrame extends JFrame {
 						e.printStackTrace();
 					}
 				}
+				if (Math.abs(playerX - enemyX) <= 50 && Math.abs(playerY - enemyY) <= 50) {
+					isMeet = true;
+					System.out.println("작동함");
+				}
 				repaint();
 			}
 		}
