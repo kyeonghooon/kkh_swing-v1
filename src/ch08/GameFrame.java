@@ -59,7 +59,6 @@ public class GameFrame extends JFrame {
 			while (true) {
 				if (isEnemyMove) {
 
-					System.out.println("진행중");
 					if (direction) {
 						enemyX -= MOVE_DISTANCE;
 					} else {
