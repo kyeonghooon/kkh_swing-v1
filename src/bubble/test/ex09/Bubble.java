@@ -1,20 +1,21 @@
-package bubble.test.ex07copy;
+package bubble.test.ex09;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 public class Bubble extends JLabel implements Moveable {
 
+	private Player player;
+	private BubbleFrame mContext;
+	private BackgroundBubbleService backgroundBubbleService;
+
 	private int x;
 	private int y;
-	private Player player;
-
+	
 	// 움직임 상태
 	private boolean left;
 	private boolean right;
 	private boolean up;
-	private boolean top;
-
 
 	// 적군을 맞춘 상태
 	private int state; // 0 : 기본 물방울, 1 : 적을 가둔 상태 물방울
@@ -24,11 +25,11 @@ public class Bubble extends JLabel implements Moveable {
 	private ImageIcon bomb; // 물방울 팡!
 
 	// 연관관계, 의존성 컴포지션 관계, 생성자 의존 주입 (DI)
-	public Bubble(Player player) {
-		this.player = player;
+	public Bubble(BubbleFrame mContext) {
+		this.mContext = mContext;
+		this.player = mContext.getPlayer();
 		initData();
 		setInitLayout();
-		initThread();
 	}
 
 	// get, set
@@ -111,23 +112,17 @@ public class Bubble extends JLabel implements Moveable {
 	public void setBomb(ImageIcon bomb) {
 		this.bomb = bomb;
 	}
-	public boolean isTop() {
-		return top;
-	}
-	
-	public void setTop(boolean top) {
-		this.top = top;
-	}
 
 	private void initData() {
 		bubble = new ImageIcon("img/bubble.png");
 		bubbled = new ImageIcon("img/bubbled.png");
 		bomb = new ImageIcon("img/bomb.png");
+		
+		backgroundBubbleService = new BackgroundBubbleService(this);
 
 		left = false;
 		right = false;
 		up = false;
-		top = false;
 		state = 0;
 	}
 	private void setInitLayout() {
@@ -138,36 +133,19 @@ public class Bubble extends JLabel implements Moveable {
 		setLocation(x, y);
 	}
 
-	// 공통으로 사용하는 부분을 메서드로 만들어 보자
-	// 이 메서드는 내부에서만 사용할 예정
-	private void initThread() {
-		// 버블은 스레드가 하나면 된다.
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				if (player.playerWay == PlayerWay.LEFT) {
-					left();
-				} else {
-					right();
-				}
-			}
-		}).start();
-	}
-
 	@Override
 	public void left() {
 		left = true;
 		for (int i = 0; i < 400; i++) {
 			x--;
 			setLocation(x, y);
+			if (backgroundBubbleService.leftWall()) {
+				break;
+			}
 			try {
 				Thread.sleep(1);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-			}
-			if (!left) {
-				break;
 			}
 		}
 		left = false;
@@ -180,13 +158,13 @@ public class Bubble extends JLabel implements Moveable {
 		for (int i = 0; i < 400; i++) {
 			x++;
 			setLocation(x, y);
+			if (backgroundBubbleService.rightWall()) {
+				break;
+			}
 			try {
 				Thread.sleep(1);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-			}
-			if (!right) {
-				break;
 			}
 		}
 		right = false;
@@ -199,6 +177,9 @@ public class Bubble extends JLabel implements Moveable {
 		while (up) {
 			y--;
 			setLocation(x, y);
+			if (backgroundBubbleService.topWall()) {
+				break;
+			}
 			try {
 				Thread.sleep(1);
 			} catch (InterruptedException e) {
@@ -206,14 +187,31 @@ public class Bubble extends JLabel implements Moveable {
 				e.printStackTrace();
 			}
 		}
-		setIcon(bomb);
+		up = false;
+		clearBubble();
+	}
+	
+	// 외부 호출 안될 메서드
+	private void clearBubble() {
+		// 3초 뒤에 터짐
 		try {
-			Thread.sleep(100);
+			Thread.sleep(3000);
+			setIcon(bomb);
+			
+			// 0.5 초 뒤에 삭제
+			Thread.sleep(500);
+			// 메모리에서 해제 처리해야 함
+			// JFrame 안에 remove 메서드가 있다.
+			setIcon(null);
+			// 오류가 생겨서 일단 이미지만 지우는 단계에서 멈춤
+			// mContext.remove(this); // 컴포넌트에서 제거 --> 다시 그림을 그리지 않는다
+			// mContext.repaint(); // 호출하는 순간 화면의 컴포넌트들 죄다 다시 그리는 거라 좋지 않음
+			
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		setIcon(null);
+		
 	}
 
 }

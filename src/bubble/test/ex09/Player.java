@@ -1,14 +1,15 @@
-package bubble.test.ex07copy;
+package bubble.test.ex09;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 public class Player extends JLabel implements Moveable {
 
+	BubbleFrame mContext;
+	
 	private int x;
 	private int y;
 	private ImageIcon playerR, playerL;
-	private Bubble bubble;
 
 	// 움직임의 상태
 	private boolean left;
@@ -23,10 +24,10 @@ public class Player extends JLabel implements Moveable {
 	// 플레이어 속도 상태
 	private final int SPEED = 4;
 	private final int JUMPSPEED = 2;
-	
+
 	// enum 타입의 활용
 	PlayerWay playerWay;
-	
+
 	// get, set
 	public int getX() {
 		return x;
@@ -95,13 +96,6 @@ public class Player extends JLabel implements Moveable {
 		return P_HEIGTH;
 	}
 
-	public Bubble getBubble() {
-		return bubble;
-	}
-	public void setBubble(Bubble bubble) {
-		this.bubble = bubble;
-	}
-
 	// 플레이어 크기
 	private final int P_WIDTH = 50;
 	private final int P_HEIGTH = 50;
@@ -114,7 +108,8 @@ public class Player extends JLabel implements Moveable {
 		this.right = right;
 	}
 
-	public Player() {
+	public Player(BubbleFrame mContext) {
+		this.mContext = mContext;
 		initData();
 		setInitLayout();
 	}
@@ -134,7 +129,7 @@ public class Player extends JLabel implements Moveable {
 
 		leftWallCrash = false;
 		rightWallCrash = false;
-		
+
 		playerWay = PlayerWay.RIGHT;
 
 	}
@@ -235,6 +230,25 @@ public class Player extends JLabel implements Moveable {
 					}
 				}
 				down = false;
+			}
+		}).start();
+	}
+
+	// 플레이어의 공격
+	public void attack() {
+		// 일 작업작에게 위임 처리
+		// 람다 표현식 --> 말 그대로 표현식, 타입 추론 가능(자바는)
+		new Thread(() -> {
+			// run() 안에 들어오는 식을 작성해주면 된다.
+			Bubble bubble = new Bubble(mContext);
+			// mContext를 통해서 (JFrame의 메서드를 호출 할 수 있다)
+			mContext.add(bubble);
+			if (playerWay == PlayerWay.LEFT) {
+				// 버블을 왼쪽으로 쏘기
+				bubble.left();
+			} else {
+				// 버블을 오른쪽으로 쏘기
+				bubble.right();
 			}
 		}).start();
 	}

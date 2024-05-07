@@ -1,6 +1,5 @@
-package bubble.test.ex07copy;
+package bubble.test.ex09;
 
-import java.awt.Component;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -11,8 +10,12 @@ import javax.swing.JLabel;
 
 public class BubbleFrame extends JFrame {
 
+	// 컨텍스트를 생성하는 방법 (셀프 참조)
+	BubbleFrame mContext = this;
+	
 	private JLabel backgroundMap;
 	private Player player;
+
 	private final int BG_WIDTH = 1000;
 	private final int BG_HEIGHT = 640;
 
@@ -22,6 +25,7 @@ public class BubbleFrame extends JFrame {
 		addEventListener();
 
 		// Player 백그라운드 서비스 시작
+
 		new Thread(new BackgroundPlayerService(player)).start();
 	}
 
@@ -34,7 +38,8 @@ public class BubbleFrame extends JFrame {
 		setContentPane(backgroundMap); // add 처리
 		setSize(BG_WIDTH, BG_HEIGHT);
 
-		player = new Player();
+		// mContext --> 참조 타입( ) --> 주소값의 크기는 기본 4byte 이다.
+		player = new Player(mContext);
 	}
 
 	private void setInitLayout() {
@@ -73,9 +78,10 @@ public class BubbleFrame extends JFrame {
 						player.up();
 						break;
 					case KeyEvent.VK_SPACE :
-						Bubble bubble = new Bubble(player);
-						add(bubble);
-						new Thread(new BackgroundBubbleService(bubble)).start();
+						player.attack();
+						// 프레임에 컴포넌트를 add하는 동작은 JFrame --> add() 메서드이다.
+						// 버블 실행시에 끊김 현상이 발생하는 이유는 왜 일까?
+						break;
 					default :
 						break;
 				}
@@ -96,8 +102,18 @@ public class BubbleFrame extends JFrame {
 			} // end of KeyReleased
 		});
 	}
+	
+	
+	// getter
+	public Player getPlayer() {
+		return player;
+	}
+	
 	// 코드 테스트
 	public static void main(String[] args) {
+		// main 함수를 가지고 있는 클래스를 하위에 생성된 모든 객체들의
+		// 주소값을 알고 있다. ( 중요! 중요! 중요!)
+		
 		new BubbleFrame();
 	} // end of main
 
